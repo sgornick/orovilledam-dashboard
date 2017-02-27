@@ -1,11 +1,32 @@
-# oroviledam-dashboard
+# orodamcdec
 Oroville Dam 
 
-## Deployment
-Clone or fork this repo to your own web server.
+## Synopsis
+Extract latest reading from CA DWR CDEC website for ORO (Oroville DAM), expose
+as JSON.
 
-## Example
-[pubdata.github.io/orovilledam-dashboard](https://pubdata.github.io/orovilledam-dashboard/)
+## Installation
+This is a Flask app (Python3).
+
+``` sh
+$ cd [your workspace]
+$ git clone https://github.com/pubdataca/orodamcdec.git
+$ cd orodamcdec
+$ python3 -m venv venv
+$ source venv/bin/activate
+$ pip install -r requirements.txt
+``` 
+
+Further deploy instructions will vary based on production system requirements.
+
+For testing, use gunicorn:
+
+``` sh
+$ gunicorn orodamcdec:app
+``` 
+
+From a browser, access the app using: [http://localhost:8000/orodamcdec](http://localhost:8000/orodamcdec)
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+MIT

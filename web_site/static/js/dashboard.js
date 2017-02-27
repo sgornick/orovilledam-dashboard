@@ -1,4 +1,4 @@
-/* global LinearGauge:false RadialGauge:false */
+/* global gauge_data:false LinearGauge:false RadialGauge:false */
 $(function() {
   function handleGetResponseResHourly(data) {
     var blank_val, html, table, level_row, flow_row;
@@ -160,8 +160,12 @@ $(function() {
   
   jQuery(document).ready(function(){
     var CORSURLPrefix, url;
-    CORSURLPrefix = 'https://cors-anywhere.herokuapp.com/';
-    url = 'http://cdec.water.ca.gov/cgi-progs/queryF?ORO';
-    $.get(CORSURLPrefix + url, handleGetResponseResHourly);
+    if (typeof gauge_data === 'undefined') {
+      CORSURLPrefix = 'https://cors-anywhere.herokuapp.com/';
+      url = 'http://cdec.water.ca.gov/cgi-progs/queryF?ORO';
+      $.get(CORSURLPrefix + url, handleGetResponseResHourly);
+    } else {
+      draw_gauges(gauge_data);
+    }
   });
 });

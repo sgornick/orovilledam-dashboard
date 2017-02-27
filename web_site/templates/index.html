@@ -237,7 +237,7 @@
   <div>
     <span style="float: right;">
       <a href="https://twitter.com/Oroville_Dam" class="twitter-follow-button" data-show-count="false">Follow @Oroville_Dam</a> &nbsp;
-      <a class="github-button" href="https://github.com/pubdata/orovilledam-dashboard" aria-label="Fork pubdata/orovilledam-dashboard on GitHub">Fork</a>
+      <a class="github-button" href="https://github.com/pubdata/orovilledam" aria-label="Fork pubdata/orovilledam on GitHub">Fork</a>
     </span>
   </div>
 
@@ -247,5 +247,10 @@
   <script type="text/javascript" src="./static/js/dashboard.js"></script>
   <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
   <script async defer src="https://buttons.github.io/buttons.js"></script>
+  <script>
+    var gauge_data = {
+            'title': {'level': '{{ data.res_elev_datetime }}', 'flow': '{{ data.flow_datetime }}'},
+            'value': {'level': {{ data.res_elev }}, 'inflow': {{ data.inflow }}, 'outflow': {{ data.outflow }}}};
+  </script>
 </body>
 </html>
