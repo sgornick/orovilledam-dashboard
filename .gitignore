@@ -7,3 +7,5 @@ __pycache__/
 venv/
 ENV/
 
+# Ignore as this is instance-specific.  Deployed from scripts/env.local.template.sh
+web_site/data/reslatest.json
