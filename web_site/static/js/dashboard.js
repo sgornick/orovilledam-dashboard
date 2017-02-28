@@ -1,22 +1,5 @@
 /* global gauge_data:false LinearGauge:false RadialGauge:false */
 $(function() {
-  function handleGetResponseResHourly(data) {
-    var blank_val, html, table, level_row, flow_row;
-    blank_val = (' '.repeat(10) + '--').slice(-10);
-    html = $.parseHTML(data.replace(/<img[^>]+>/gi, ''));
-    table = $('div.content_left_column table:has(tr:nth-child(14):last-child:has(td:nth-child(15):last-child))', html);
-    level_row = $('tr:has(td:nth-child(2):not(:contains(' + blank_val + ')))', table).last();
-    flow_row = $('tr:has(td:nth-child(8):not(:contains(' + blank_val + '))):has(td:nth-child(10):not(:contains(' + blank_val + ')))', table).last();
-    draw_gauges({
-      'title': {
-        'level': format_date_title($('td:nth-child(1)', level_row).text()),
-        'flow': format_date_title($('td:nth-child(1)', flow_row).text())},
-      'value': {
-        'level': parseFloat($('td:nth-child(2)', level_row).text()),
-        'inflow': parseInt($('td:nth-child(8)', flow_row).text()),
-        'outflow': parseInt($('td:nth-child(6)', flow_row).text())}});
-  }
-
   function range(start, stop, step) {
     var a, b;
     a=[start];
