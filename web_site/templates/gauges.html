@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="/static/css/gauges.css" />
+</head>
+<body>
+  <div id="lake-level">
+    <div class="title">Lake Level</div>
+    <canvas id="level-gauge"></canvas>
+  </div>
+  <div id="flows">
+    <div>
+      <div class="gauge">
+        <div class="title">Inflow</div>
+        <canvas id="inflow-gauge"></canvas>
+      </div>
+      <div class="gauge">
+        <div class="title">Outflow</div>
+        <canvas id="outflow-gauge"></canvas>
+      </div>
+    </div>
+    <div class="title">
+        <strong>Lake Oroville Dam</strong>
+    </div>
+    <div class="title" id="title-date">
+    </div>
+    <div class="branding">
+      OrovilleDam.org
+    </div>
+  </div>
+
+  <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://cdn.rawgit.com/Mikhus/canvas-gauges/gh-pages/download/2.1.2/all/gauge.min.js"></script>
+  <script type="text/javascript" src="/static/js/gauges.js"></script>
+  <script type="text/javascript">
+    var gauge_data = {
+            'title': '{{ data.datetime }}',
+            'value': {'level': {{ data.res_elev }}, 'inflow': {{ data.inflow }}, 'outflow': {{ data.outflow }}}};            
+  </script>
+</body>
+</html>

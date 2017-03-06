@@ -1,0 +1,43 @@
+body {
+  background-color: #fff;
+  margin: 0 auto;
+  position: absolute;
+  left: 0;
+}
+
+.gauge {
+  margin-left: 20px;
+  float: left;
+  width: 172px;
+}
+
+.title {
+  text-align: center;
+}
+
+.branding {
+  float: right;
+  font-size: smaller;
+}
+
+#lake-level {
+  float: left;
+  margin-left: 15px;
+  margin-top: 10px;
+}
+
+#flows {
+  float: left;
+  margin-top: 10px;
+}
+
+#flows canvas {
+  padding-top: 15px;
+  padding-bottom: 20px;
+}
+
+#title-date {
+  clear: left;
+  padding-top: 12px;
+  padding-bottom: 14px;
+}
