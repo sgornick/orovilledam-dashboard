@@ -22,7 +22,7 @@ $(function() {
       {flow: 0, ticks: {major: 0.1, minor: 0.05}}
     ];
     order = Math.floor((Math.log(max_val) / Math.LN10) + 0.000000001);
-    for (i = 0; i < vals.length; i++) {
+    for (var i = 0; i < vals.length; i++) {
       if ((max_val / Math.pow(10, order)) >= vals[i]['flow']) {
         val = vals[i];
         break;
@@ -35,8 +35,9 @@ $(function() {
 
   function max_flow(inflow_val, outflow_val) {
     // Dynamically set gauge max to next major tick.
-    var max_val, tick;
-    max_val = Math.max(inflow_val, outflow_val, 1);
+    var max_val, min_max_val, tick;
+    min_max_val = 20000;  // Gauge max should never be less than this.
+    max_val = Math.max(inflow_val, outflow_val, min_max_val);
     tick = ticks(max_val)['major'];
     if ((Math.floor(max_val / tick) * tick) == max_val) {
       // At a tick mark already, leave as-as.
@@ -143,7 +144,7 @@ $(function() {
     inflow_gauge.value = data['value']['inflow'];
     outflow_gauge.value = data['value']['outflow'];
   }
-  
+
   jQuery(document).ready(function(){
     draw_gauges(gauge_data);
   });
