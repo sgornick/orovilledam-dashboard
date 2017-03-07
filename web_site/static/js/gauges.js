@@ -57,7 +57,9 @@ $(function() {
   }
 
   function draw_gauges(data) {
-    var max_flow_val;
+    var max_flow_val, level_min;
+    level_min = Math.min(
+        (Math.floor((data['value']['level'] - 15) / 50) - Math.floor(data['value']['level'] / 750)) * 50, 750);  // Dynamically set min level -- lessen gap from bottom when at lower levels.
     max_flow_val = max_flow(data['value']['inflow'], data['value']['outflow']);
     $('#title-date').text(data['title']);
     new LinearGauge({
@@ -65,10 +67,10 @@ $(function() {
       width: 180,
       height: 311,
       units: 'Feet',
-      minValue: 600,
+      minValue: level_min,
       maxValue: 925,
       exactTicks: true,
-      majorTicks: range(600, 900, 50).concat(925),
+      majorTicks: range(level_min, 900, 50).concat(925),
       minorTicks: 10,
       borderShadowWidth: 0,
       borders: false,
