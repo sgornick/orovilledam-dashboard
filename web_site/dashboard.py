@@ -112,7 +112,6 @@ def index():
 	data = res_latest()
 	return render_template('index.html', data=data)
 
-
 @app.route('/gauges/')
 def gauges():
 	data = gauges_latest()
@@ -121,7 +120,6 @@ def gauges():
 @app.route('/gaugeslatest/', methods=['GET'])
 def gauges_latest_json():
 	return jsonify(gauges_latest())
-
 
 @app.route('/reslatest/', methods=['GET'])
 def res_latest_json():
