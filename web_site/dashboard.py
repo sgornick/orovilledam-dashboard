@@ -1,9 +1,11 @@
 from pathlib import Path
 from urllib import request
 from lxml import html
-from flask import Flask, jsonify, render_template
+from flask import Flask, Response, jsonify, render_template, abort
+from selenium import webdriver
 from datetime import datetime, timedelta
 import json
+import os
 import pytz
 
 
@@ -124,3 +126,20 @@ def gauges_latest_json():
 @app.route('/reslatest/', methods=['GET'])
 def res_latest_json():
 	return jsonify(res_latest())
+
+@app.route('/latest/', methods=['GET'])
+@app.route('/latest/<filename>.<file_ext>', methods=['GET'])
+@app.route('/latest/<filename>', methods=['GET'])
+def latest(filename='latest', file_ext='png'):
+	url = 'https://orovilledam.org/gauges'
+	output_types = {
+		'png': 'image/png',
+	}
+	if file_ext and file_ext.lower() not in output_types:
+		abort(404)
+	driver = webdriver.PhantomJS(executable_path="/usr/bin/phantomjs", service_log_path=os.path.devnull)
+	driver.set_window_size(600, 350)
+	driver.get(url)
+	png = driver.get_screenshot_as_png()
+	driver.quit()
+	return (Response(png, mimetype="image/png"))
