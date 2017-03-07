@@ -15,7 +15,7 @@ def request_res_latest_json():
 	req = request.Request(url=url)
 	with request.urlopen(req) as response:
 		page = response.read()
-		tree = html.fromstring(page)
+	tree = html.fromstring(page)
 	# There could be multiple tables in the page.
 	# The table with hourly measurements has 14 rows and 15 colums.
 	# The last row may be incomplete (blank values). Ignore these.
@@ -50,7 +50,7 @@ def request_gauges_latest_json():
 	req = request.Request(url=url)
 	with request.urlopen(req) as response:
 		page = response.read()
-		tree = html.fromstring(page)
+	tree = html.fromstring(page)
 	# There could be multiple tables in the page.
 	# The table with hourly measurements has 14 rows and 15 colums.
 	# The last row may be incomplete (blank values). Ignore these.
