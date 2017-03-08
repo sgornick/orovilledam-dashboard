@@ -14,3 +14,8 @@ web_site/data/gaugeslatest.json
 # Gunicorn config file.
 # Ignore as this is instance-specific.  Deployed from deploy/gunicorn-*.conf
 /gunicorn-orovilledam.conf
+
+# Instance config.
+# Ignore, other than template, as these as are instance-specific and could have keys.
+web_site/instance/*
+!web_site/instance/config-template.py

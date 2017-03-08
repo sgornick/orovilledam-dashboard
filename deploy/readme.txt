@@ -15,10 +15,6 @@ Add/Update orovilledam.org software:
       Ubuntu 16.04 or later:
       $ sudo apt-get install python3-venv
 
-      NOTE: PhantomJS is only required if want to support /latest, which provides
-            an image of the latest gauge readings.
-      $ sudo apt-get install phantomjs
-
     Clone repo and create virtual environment:
       $ sudo test
 
@@ -33,6 +29,14 @@ Add/Update orovilledam.org software:
       $ pip install --upgrade pip
       $ pip install -r deploy/requirements.txt
       $ deactivate
+
+    Configure instance variables.
+      If supporting /latest to return an image of the latest gauge readings,
+        that uses a cloud service PhantomJSCloud.com, and an API key is needed.
+      $ cd /var/www/orovilledam.org/web_site/instance
+      $ cp config-template.py config.py
+      $ vi config.py
+         And replace the value for the API key using yours from PhantomJSCloud.com
 
 '  Update file ownership and permissions.
       $ ( cd /var/www/$SERVER_NAME/deploy/scripts; ./setpermissions.sh )

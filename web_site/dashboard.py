@@ -1,10 +1,11 @@
 from pathlib import Path
 from urllib import request
 from lxml import html
-from flask import Flask, Response, request as flask_request, jsonify, render_template, abort
+from flask import Flask, Response, request as flask_request, jsonify, render_template, send_file, abort
 from werkzeug.contrib.atom import AtomFeed
-from selenium import webdriver
+from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
+import io
 import json
 import os
 import pytz
@@ -121,8 +122,8 @@ def sync_gauges_json(last_datetime_str):
 			os.remove(str(path))
 
 
-app = Flask(__name__)
-
+app = Flask(__name__, instance_relative_config=True)
+app.config.from_pyfile('config.py', silent=True)
 
 @app.route('/')
 def index():
@@ -142,22 +143,26 @@ def gauges_latest_json():
 def res_latest_json():
 	return jsonify(res_latest())
 
+
 @app.route('/latest/', methods=['GET'])
 @app.route('/latest/<filename>.<file_ext>', methods=['GET'])
 @app.route('/latest/<filename>', methods=['GET'])
 def latest(filename='latest', file_ext='png'):
-	url = 'https://orovilledam.org/gauges'
+	url = "https://phantomjscloud.com/api/browser/v2/{}/?request={{url:%22https://orovilledam.org/gauges/%22,renderType:%22png%22,renderSettings:{{viewport:{{width:600,height:350}}}}}}".format(
+        app.config["PHANTOMJSCLOUD_API_KEY"])
 	output_types = {
 		'png': 'image/png',
 	}
 	if file_ext and file_ext.lower() not in output_types:
-		abort(404)
-	driver = webdriver.PhantomJS(executable_path="/usr/bin/phantomjs", service_log_path=os.path.devnull)
-	driver.set_window_size(600, 350)
-	driver.get(url)
-	png = driver.get_screenshot_as_png()
-	driver.quit()
-	return (Response(png, mimetype="image/png"))
+	   abort(404)
+	req = request.Request(url=url)
+	with request.urlopen(req) as response:
+		mimetype = response.headers['Content-Type']
+		image_data = io.BytesIO(response.read())
+	return send_file(
+		image_data,
+		attachment_filename=secure_filename('{}.{}'.format(filename, file_ext)),
+		mimetype=mimetype)
 
 
 @app.route('/feed/', methods=['GET'])
@@ -199,8 +204,8 @@ def feed():
 		   url='https://cdec.water.ca.gov/cgi-progs/queryF?ORO',
 		   updated=row_datetime,
 		   published=row_datetime)
-    # After doing a /feed, if there's a new entry, /gauge will be accessed.
-    # But that could return a stale view since the gauge json was recent.
-    # So if /feed has a newer reading than the gauge json, purge it so it will be recreated next time, fresh.
+	# After doing a /feed, if there's a new entry, /gauge will be accessed.
+	# But that could return a stale view since the gauge json was recent.
+	# So if /feed has a newer reading than the gauge json, purge it so it will be recreated next time, fresh.
 	sync_gauges_json(last_datetime_str)
 	return feed.get_response()
