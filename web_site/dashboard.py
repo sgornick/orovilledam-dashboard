@@ -192,8 +192,8 @@ def feed():
 		last_datetime_str = data['entryTitle']
 		data['entryText'] = 'Lake Level: {:,.2f} ft, Inflow: {:,d} cfps, Outflow: {:,d} cfps'.format(
 			float(row.xpath('td')[1].xpath('text()')[0]),
-			int(row.xpath('td')[5].xpath('text()')[0]),
-			int(row.xpath('td')[7].xpath('text()')[0]))
+			int(row.xpath('td')[7].xpath('text()')[0]),
+			int(row.xpath('td')[5].xpath('text()')[0]))
 		feed.add(
 		   data["entryTitle"],
 		   data["entryText"],
