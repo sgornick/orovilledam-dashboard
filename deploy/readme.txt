@@ -9,13 +9,15 @@ Access these instructions if need help with any of these steps.
 Add/Update orovilledam.org software:
 
    Ensure dependencies:
-      $ sudo apt-get install phantomjs
-
       Ubuntu 14.04:
       $ sudo apt-get install python3.4-venv
 
       Ubuntu 16.04 or later:
       $ sudo apt-get install python3-venv
+
+      NOTE: PhantomJS is only required if want to support /latest, which provides
+            an image of the latest gauge readings.
+      $ sudo apt-get install phantomjs
 
     Clone repo and create virtual environment:
       $ sudo test
