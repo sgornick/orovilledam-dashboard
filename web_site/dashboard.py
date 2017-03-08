@@ -190,9 +190,8 @@ def feed():
 		row_datetime = PT.localize(row_datetime)
 		data['entryTitle'] = '{:%B %-d, %Y %-I%P} {}'.format(row_datetime, row_datetime.tzname())
 		last_datetime_str = data['entryTitle']
-		data['entryText'] = 'Lake Level: {:,.2f} ft, Storage: {:,d} af, Outflow: {:,d} cfps, Inflow: {:,d} cfps'.format(
+		data['entryText'] = 'Lake Level: {:,.2f} ft, Inflow: {:,d} cfps, Outflow: {:,d} cfps'.format(
 			float(row.xpath('td')[1].xpath('text()')[0]),
-			int(row.xpath('td')[3].xpath('text()')[0]),
 			int(row.xpath('td')[5].xpath('text()')[0]),
 			int(row.xpath('td')[7].xpath('text()')[0]))
 		feed.add(
