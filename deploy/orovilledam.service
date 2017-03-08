@@ -7,7 +7,7 @@ User=www-data
 Group=www-data
 WorkingDirectory=/var/www/orovilledam.org/web_site
 Environment="PATH=/var/www/orovilledam.org/venv/bin"
-ExecStart=/var/www/orovilledam.org/venv/bin/gunicorn --workers 1 --bind unix:orovilledam.sock -m 007 dashboard:app
+ExecStart=/var/www/orovilledam.org/venv/bin/gunicorn --workers 4 --bind unix:orovilledam.sock -m 007 dashboard:app
 
 [Install]
 WantedBy=multi-user.target
