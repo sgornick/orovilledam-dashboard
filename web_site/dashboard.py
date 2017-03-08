@@ -20,6 +20,7 @@ def request_res_latest_json():
 	tree = html.fromstring(page)
 	# There could be multiple tables in the page.
 	# The table with hourly measurements has 14 rows and 15 colums.
+	# The first two rows are for the title, ignore that.
 	# The last row may be incomplete (blank values). Ignore these.
 	res_elev_row = tree.xpath(
 		'//div[@class="content_left_column"]/table[count(tr) = 14]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"]]'.format(
@@ -55,6 +56,7 @@ def request_gauges_latest_json():
 	tree = html.fromstring(page)
 	# There could be multiple tables in the page.
 	# The table with hourly measurements has 14 rows and 15 colums.
+	# The first two rows are for the title, ignore that.
 	# The last row may be incomplete (blank values). Ignore these.
 	row = tree.xpath(
 		'//div[@class="content_left_column"]/table[count(tr) = 14]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
