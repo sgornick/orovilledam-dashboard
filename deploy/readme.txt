@@ -9,6 +9,8 @@ Access these instructions if need help with any of these steps.
 Add/Update orovilledam.org software:
 
    Ensure dependencies:
+      $ sudo apt-get install phantomjs
+
       Ubuntu 14.04:
       $ sudo apt-get install python3.4-venv
 
