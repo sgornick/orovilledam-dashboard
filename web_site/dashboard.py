@@ -199,5 +199,8 @@ def feed():
 		   url='https://cdec.water.ca.gov/cgi-progs/queryF?ORO',
 		   updated=row_datetime,
 		   published=row_datetime)
+    # After doing a /feed, if there's a new entry, /gauge will be accessed.
+    # But that could return a stale view since the gauge json was recent.
+    # So if /feed has a newer reading than the gauge json, purge it so it will be recreated next time, fresh.
 	sync_gauges_json(last_datetime_str)
 	return feed.get_response()
