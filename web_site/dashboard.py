@@ -1,7 +1,8 @@
 from pathlib import Path
 from urllib import request
 from lxml import html
-from flask import Flask, Response, jsonify, render_template, abort
+from flask import Flask, Response, request as flask_request, jsonify, render_template, abort
+from werkzeug.contrib.atom import AtomFeed
 from selenium import webdriver
 from datetime import datetime, timedelta
 import json
@@ -145,3 +146,43 @@ def latest(filename='latest', file_ext='png'):
 	png = driver.get_screenshot_as_png()
 	driver.quit()
 	return (Response(png, mimetype="image/png"))
+
+
+@app.route('/feed/', methods=['GET'])
+@app.route('/rss/', methods=['GET'])
+def feed():
+	blank_val = '--'.rjust(10)
+	rows = []
+	url = 'https://cdec.water.ca.gov/cgi-progs/queryF?ORO'
+	PT = pytz.timezone('America/Los_Angeles')  # Pacific Timezone
+	req = request.Request(url=url)
+	with request.urlopen(req) as response:
+		page = response.read()
+	feed = AtomFeed('Recent entries', feed_url=flask_request.url, url=flask_request.url_root)
+	tree = html.fromstring(page)
+	# There could be multiple tables in the page.
+	# The table with hourly measurements has 14 rows and 15 colums.
+	# The first two rows are for the title, ignore that.
+	# The last row may be incomplete (blank values). Ignore these.
+	for row in tree.xpath(
+		'//div[@class="content_left_column"]/table[count(tr) = 14]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
+			blank_val, blank_val, blank_val)):
+		data = {}
+		row_datetime = datetime.strptime(row.xpath('td')[0].xpath('text()')[0], '%m/%d/%Y %H:%M')
+		row_datetime = PT.localize(row_datetime)
+		data['entryTitle'] = '{:%B %-d, %Y %-I%P} {}'.format(row_datetime, row_datetime.tzname())
+		data['entryText'] = '- Lake Level: {:,.2f} ft, Storage: {:,d} af, Outflow: {:,d} cfps, Inflow: {:,d} cfps https://OrovilleDam.org'.format(
+			float(row.xpath('td')[1].xpath('text()')[0]),
+			int(row.xpath('td')[3].xpath('text()')[0]),
+			int(row.xpath('td')[5].xpath('text()')[0]),
+			int(row.xpath('td')[7].xpath('text()')[0]))
+		feed.add(
+		   data["entryTitle"],
+		   data["entryText"],
+		   id='https://cdec.water.ca.gov/cgi-progs/queryF?ORO#{:%Y%m%d%H%M%S}'.format(row_datetime),
+		   content_type='text',
+		   author='California Dept of Water Resources https://cdec.water.ca.gov/cgi-progs/queryF?ORO',
+		   url='https://cdec.water.ca.gov/cgi-progs/queryF?ORO',
+		   updated=row_datetime,
+		   published=row_datetime)
+	return feed.get_response()
