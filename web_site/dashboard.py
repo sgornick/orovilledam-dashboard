@@ -109,6 +109,18 @@ def gauges_latest():
 	return data
 
 
+def sync_gauges_json(last_datetime_str):
+	# If json file in data directory is stale, delete it so will get refreshed.
+	data = {}
+	site_root = Path(__file__).parent
+	path = Path(site_root, "data", "gaugeslatest.json")
+	if path.is_file():
+		with path.open("r") as data_file:
+			data = json.load(data_file)
+		if last_datetime_str != data['datetime']:
+			os.remove(str(path))
+
+
 app = Flask(__name__)
 
 
@@ -164,6 +176,7 @@ def feed():
 	# The table with hourly measurements has 14 rows and 15 colums.
 	# The first two rows are for the title, ignore that.
 	# The last row may be incomplete (blank values). Ignore these.
+	last_datetime_str = None
 	for row in tree.xpath(
 		'//div[@class="content_left_column"]/table[count(tr) = 14]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
 			blank_val, blank_val, blank_val)):
@@ -171,6 +184,7 @@ def feed():
 		row_datetime = datetime.strptime(row.xpath('td')[0].xpath('text()')[0], '%m/%d/%Y %H:%M')
 		row_datetime = PT.localize(row_datetime)
 		data['entryTitle'] = '{:%B %-d, %Y %-I%P} {}'.format(row_datetime, row_datetime.tzname())
+		last_datetime_str = data['entryTitle']
 		data['entryText'] = '- Lake Level: {:,.2f} ft, Storage: {:,d} af, Outflow: {:,d} cfps, Inflow: {:,d} cfps https://OrovilleDam.org'.format(
 			float(row.xpath('td')[1].xpath('text()')[0]),
 			int(row.xpath('td')[3].xpath('text()')[0]),
@@ -185,4 +199,5 @@ def feed():
 		   url='https://cdec.water.ca.gov/cgi-progs/queryF?ORO',
 		   updated=row_datetime,
 		   published=row_datetime)
+	sync_gauges_json(last_datetime_str)
 	return feed.get_response()
