@@ -10,6 +10,7 @@ $ git clone https://github.com/sgornick/orovilledam.org.git
 $ cd orovilledam.org
 $ python3 -m venv venv
 $ source venv/bin/activate
+$ pip install --upgrade pip
 $ pip install -r requirements.txt
 ``` 
 
