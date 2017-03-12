@@ -21,14 +21,14 @@ def request_res_latest_json():
 		page = response.read()
 	tree = html.fromstring(page)
 	# There could be multiple tables in the page.
-	# The table with hourly measurements has 14 rows and 15 colums.
+	# The table with hourly measurements has either 14 or 15 rows and exactly 15 columns.
 	# The first two rows are for the title, ignore that.
 	# The last row may be incomplete (blank values). Ignore these.
 	res_elev_row = tree.xpath(
-		'//div[@class="content_left_column"]/table[count(tr) = 14]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"]]'.format(
+		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"]]'.format(
 			blank_val))[-1]
 	flow_row = tree.xpath(
-		'//div[@class="content_left_column"]/table[count(tr) = 14]/tr[count(td) = 15][position() > 2][td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
+		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
 			blank_val, blank_val))[-1]
 	res_elev_datetime = '{:%b %-d %-I%P}'.format(
 		datetime.strptime(res_elev_row[0].xpath('text()')[0], '%m/%d/%Y %H:%M'))
@@ -57,11 +57,11 @@ def request_gauges_latest_json():
 		page = response.read()
 	tree = html.fromstring(page)
 	# There could be multiple tables in the page.
-	# The table with hourly measurements has 14 rows and 15 colums.
+	# The table with hourly measurements has either 14 or 15 rows and exactly 15 colums.
 	# The first two rows are for the title, ignore that.
 	# The last row may be incomplete (blank values). Ignore these.
 	row = tree.xpath(
-		'//div[@class="content_left_column"]/table[count(tr) = 14]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
+		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
 			blank_val, blank_val, blank_val))[-1]
 	row_datetime = datetime.strptime(row[0].xpath('text()')[0], '%m/%d/%Y %H:%M')
 	row_datetime = PT.localize(row_datetime)
@@ -178,12 +178,12 @@ def feed():
 	feed = AtomFeed('Recent entries', feed_url=flask_request.url, url=flask_request.url_root)
 	tree = html.fromstring(page)
 	# There could be multiple tables in the page.
-	# The table with hourly measurements has 14 rows and 15 colums.
+	# The table with hourly measurements has either 14 or 15 rows and exactly 15 colums.
 	# The first two rows are for the title, ignore that.
 	# The last row may be incomplete (blank values). Ignore these.
 	last_datetime_str = None
 	for row in tree.xpath(
-		'//div[@class="content_left_column"]/table[count(tr) = 14]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
+		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
 			blank_val, blank_val, blank_val)):
 		data = {}
 		row_datetime = datetime.strptime(row.xpath('td')[0].xpath('text()')[0], '%m/%d/%Y %H:%M')
