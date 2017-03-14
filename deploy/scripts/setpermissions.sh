@@ -11,7 +11,7 @@ find ../../ -type d ! -path "*/.git*" -exec chmod g+rx {} \;
 chmod g+w ../../
 chmod g+w ../../web_site
 chmod g+w ../../web_site/data
-chmod --silent g+rw ../../web_site/data/reslatest.json
+chmod --silent g+rw ../../web_site/data/*.json
 chmod -R g+r ../../web_site/static
 chmod -R g+r ../../web_site/templates
 chmod -f g+r ../../gunicorn-*.conf || true
