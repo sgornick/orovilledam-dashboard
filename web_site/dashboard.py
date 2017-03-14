@@ -1,5 +1,6 @@
 from pathlib import Path
 from urllib import request
+from urllib.error import URLError
 from lxml import html
 from flask import Flask, Response, request as flask_request, jsonify, render_template, send_file, abort
 from werkzeug.contrib.atom import AtomFeed
@@ -17,8 +18,13 @@ def request_res_latest_json():
 	data = {}
 	url = 'http://cdec.water.ca.gov/cgi-progs/queryF?ORO'
 	req = request.Request(url=url)
-	with request.urlopen(req) as response:
-		page = response.read()
+	try:
+		with request.urlopen(req) as response:
+			page = response.read()
+	except (URLError) as e:
+		print ("The following error has occurred:\n")
+		print (repr(e))
+		return {'res_elev': 0, 'inflow': 0, 'outflow': 0}
 	tree = html.fromstring(page)
 	# There could be multiple tables in the page.
 	# The table with hourly measurements has either 14 or 15 rows and exactly 15 columns.
