@@ -10,6 +10,7 @@ import io
 import json
 import os
 import pytz
+import logging
 
 
 def request_res_latest_json():
@@ -22,8 +23,7 @@ def request_res_latest_json():
 		with request.urlopen(req) as response:
 			page = response.read()
 	except (URLError) as e:
-		print ("The following error has occurred:\n")
-		print (repr(e))
+		logging.warning('The following error has occurred: {}'.format(repr(e)))
 		return {'res_elev': 0, 'inflow': 0, 'outflow': 0}
 	tree = html.fromstring(page)
 	# There could be multiple tables in the page.
