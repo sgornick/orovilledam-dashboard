@@ -155,7 +155,7 @@ def res_latest_json():
 @app.route('/latest/<filename>', methods=['GET'])
 def latest(filename='latest', file_ext='png'):
 	url = "https://phantomjscloud.com/api/browser/v2/{}/?request={{url:%22https://orovilledam.org/gauges/%22,renderType:%22png%22,renderSettings:{{viewport:{{width:600,height:350}}}}}}".format(
-        app.config["PHANTOMJSCLOUD_API_KEY"])
+		app.config["PHANTOMJSCLOUD_API_KEY"])
 	output_types = {
 		'png': 'image/png',
 	}
