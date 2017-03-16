@@ -134,6 +134,7 @@ app.config.from_pyfile('config.py', silent=True)
 @app.route('/')
 def index():
 	data = res_latest()
+	data['analytics_id'] = app.config['ANALYTICS_ID']
 	return render_template('index.html', data=data)
 
 @app.route('/gauges/')
