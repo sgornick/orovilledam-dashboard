@@ -86,10 +86,10 @@ def request_gauges_latest_json():
 
 def res_latest():
 	site_root = Path(__file__).parent
-	path = Path(site_root, "data", "reslatest.json")
+	path = Path(site_root, 'data', 'reslatest.json')
 	data = {}
 	if path.is_file():
-		with path.open("r") as data_file:
+		with path.open('r') as data_file:
 			data = json.load(data_file)
 	# If more than a minute old, get the latest.
 	if 'timestamp_str' not in data or \
@@ -102,10 +102,10 @@ def res_latest():
 
 def gauges_latest():
 	site_root = Path(__file__).parent
-	path = Path(site_root, "data", "gaugeslatest.json")
+	path = Path(site_root, 'data', 'gaugeslatest.json')
 	data = {}
 	if path.is_file():
-		with path.open("r") as data_file:
+		with path.open('r') as data_file:
 			data = json.load(data_file)
 	# If more than a minute old, get the latest.
 	if 'timestamp_str' not in data or \
@@ -120,9 +120,9 @@ def sync_gauges_json(last_datetime_str):
 	# If json file in data directory is stale, delete it so will get refreshed.
 	data = {}
 	site_root = Path(__file__).parent
-	path = Path(site_root, "data", "gaugeslatest.json")
+	path = Path(site_root, 'data', 'gaugeslatest.json')
 	if path.is_file():
-		with path.open("r") as data_file:
+		with path.open('r') as data_file:
 			data = json.load(data_file)
 		if last_datetime_str != data['datetime']:
 			os.remove(str(path))
@@ -154,8 +154,8 @@ def res_latest_json():
 @app.route('/latest/<filename>.<file_ext>', methods=['GET'])
 @app.route('/latest/<filename>', methods=['GET'])
 def latest(filename='latest', file_ext='png'):
-	url = "https://phantomjscloud.com/api/browser/v2/{}/?request={{url:%22https://orovilledam.org/gauges/%22,renderType:%22png%22,renderSettings:{{viewport:{{width:600,height:350}}}}}}".format(
-		app.config["PHANTOMJSCLOUD_API_KEY"])
+	url = 'https://phantomjscloud.com/api/browser/v2/{}/?request={{url:%22https://orovilledam.org/gauges/%22,renderType:%22png%22,renderSettings:{{viewport:{{width:600,height:350}}}}}}'.format(
+		app.config['PHANTOMJSCLOUD_API_KEY'])
 	output_types = {
 		'png': 'image/png',
 	}
@@ -201,8 +201,8 @@ def feed():
 			int(row.xpath('td')[7].xpath('text()')[0]),
 			int(row.xpath('td')[5].xpath('text()')[0]))
 		feed.add(
-		   data["entryTitle"],
-		   data["entryText"],
+		   data['entryTitle'],
+		   data['entryText'],
 		   id='https://cdec.water.ca.gov/cgi-progs/queryF?ORO#{:%Y%m%d%H%M%S}'.format(row_datetime),
 		   content_type='text',
 		   author='California Dept of Water Resources https://cdec.water.ca.gov/cgi-progs/queryF?ORO',
