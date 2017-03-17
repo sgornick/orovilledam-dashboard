@@ -232,8 +232,8 @@ def feed():
 	if len(data_rows) != 12:
 		# Unexpected data somewhere.
 		logging.warning('The following error has occurred: Expected 12 data_rows, found: {}.'.format(len(data_rows)))
-		save_debug_data(page)
-		return data
+		save_debug_data(str(page))
+		return feed.get_response()
 	for row in data_rows:
 		data = {}
 		row_datetime = datetime.strptime(row.xpath('td')[0].xpath('text()')[0], '%m/%d/%Y %H:%M')
