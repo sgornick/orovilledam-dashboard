@@ -91,7 +91,7 @@ def request_gauges_latest_json():
 	gauge_rows = tree.xpath(
 		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
 			blank_val, blank_val, blank_val))
-	if len(gauge_rows) == 13:
+	if len(gauge_rows) == 12:
 		row = gauge_rows[-1]
 	else:
 		# Unexpected data somewhere.
