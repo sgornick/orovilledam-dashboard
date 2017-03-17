@@ -21,39 +21,25 @@ def request_res_latest_json():
 	data['res_elev'] = 0
 	data['inflow'] = 0
 	data['outflow'] = 0
-	url = 'http://cdec.water.ca.gov/cgi-progs/queryF?ORO'
-	req = request.Request(url=url)
-	try:
-		with request.urlopen(req) as response:
-			page = response.read()
-	except (URLError) as e:
-		logging.warning('The following error has occurred: {}'.format(repr(e)))
+	page = request_cdec_hourly_page()
+	if page is None:
 		return data
-	tree = html.fromstring(page)
 	# There could be multiple tables in the page.
 	# The table with hourly measurements has either 14 or 15 rows and exactly 15 columns.
 	# The first two rows are for the title, ignore that.
 	# The last row may be incomplete (blank values). Ignore these.
-	res_elev_rows = tree.xpath(
-		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"]]'.format(
-			blank_val))
-	if len(res_elev_rows) == 12:
-		res_elev_row = res_elev_rows[-1]
-	else:
-		# Unexpected data somewhere.
-		logging.warning('The following error has occurred: Expected 12 res_elev_rows rows, found: {}'.format(len(res_elev_rows)))
-		save_debug_data(str(page))
+	xpath_predicate = '//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"]]'.format(
+			blank_val)
+	rows = parse_page_table('res_elev', xpath_predicate, page)
+	if rows is None:
 		return data
-	flow_rows = tree.xpath(
-		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
-			blank_val, blank_val))
-	if len(flow_rows) == 12:
-		flow_row = flow_rows[-1]
-	else:
-		# Unexpected data somewhere.
-		logging.warning('The following error has occurred: Expected 12 flow_rows, found: {}'.format(len(flow_rows)))
-		save_debug_data(str(page))
+	res_elev_row = rows[-1]
+	xpath_predicate = '//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
+			blank_val, blank_val)
+	rows = parse_page_table('flow', xpath_predicate, page)
+	if rows is None:
 		return data
+	flow_row = rows[-1]
 	res_elev_datetime = '{:%b %-d %-I%P}'.format(
 		datetime.strptime(res_elev_row[0].xpath('text()')[0], '%m/%d/%Y %H:%M'))
 	res_elev = float(res_elev_row[1].xpath('text()')[0])
@@ -79,25 +65,19 @@ def request_gauges_latest_json():
 	data['inflow'] = 0
 	data['outflow'] = 0
 	PT = pytz.timezone('America/Los_Angeles')  # Pacific Timezone
-	url = 'http://cdec.water.ca.gov/cgi-progs/queryF?ORO'
-	req = request.Request(url=url)
-	with request.urlopen(req) as response:
-		page = response.read()
-	tree = html.fromstring(page)
+	page = request_cdec_hourly_page()
+	if page is None:
+		return data
 	# There could be multiple tables in the page.
 	# The table with hourly measurements has either 14 or 15 rows and exactly 15 colums.
 	# The first two rows are for the title, ignore that.
 	# The last row may be incomplete (blank values). Ignore these.
-	gauge_rows = tree.xpath(
-		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
-			blank_val, blank_val, blank_val))
-	if len(gauge_rows) == 12:
-		row = gauge_rows[-1]
-	else:
-		# Unexpected data somewhere.
-		logging.warning('The following error has occurred: Expected 12 gauge_rows, found: {}.'.format(len(gauge_rows)))
-		save_debug_data(str(page))
+	xpath_predicate = '//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
+			blank_val, blank_val, blank_val)
+	rows = parse_page_table('gauge', xpath_predicate, page)
+	if rows is None:
 		return data
+	row = rows[-1]
 	row_datetime = datetime.strptime(row[0].xpath('text()')[0], '%m/%d/%Y %H:%M')
 	row_datetime = PT.localize(row_datetime)
 	datetime_str = '{:%B %-d, %Y %-I%P} {}'.format(
@@ -165,6 +145,30 @@ def save_debug_data(data):
 		logging.warning('Wrote debug data file: {}'.format(path))
 
 
+def request_cdec_hourly_page():
+	url = 'http://cdec.water.ca.gov/cgi-progs/queryF?ORO'
+	req = request.Request(url=url)
+	try:
+		with request.urlopen(req) as response:
+			page = response.read()
+	except (URLError) as e:
+		logging.warning('The following error has occurred: {}'.format(repr(e)))
+		return None
+	return page
+
+
+def parse_page_table(label, xpath_predicate, page):
+	tree = html.fromstring(page)
+	rows = tree.xpath(xpath_predicate)
+	if len(rows) < 1:
+		# Unexpected data somewhere.
+		logging.warning('The following error has occurred: Expected {} rows, found only: {} rows'.format(
+            label, len(rows)))
+		save_debug_data(str(page))
+		return None
+	return rows
+
+
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_pyfile('config.py', silent=True)
 
@@ -213,28 +217,22 @@ def latest(filename='latest', file_ext='png'):
 @app.route('/rss/', methods=['GET'])
 def feed():
 	blank_val = '--'.rjust(10)
-	rows = []
-	url = 'https://cdec.water.ca.gov/cgi-progs/queryF?ORO'
 	PT = pytz.timezone('America/Los_Angeles')  # Pacific Timezone
-	req = request.Request(url=url)
-	with request.urlopen(req) as response:
-		page = response.read()
 	feed = AtomFeed('Recent entries', feed_url=flask_request.url, url=flask_request.url_root)
-	tree = html.fromstring(page)
+	page = request_cdec_hourly_page()
+	if page is None:
+		return feed.get_response()
 	# There could be multiple tables in the page.
 	# The table with hourly measurements has either 14 or 15 rows and exactly 15 colums.
 	# The first two rows are for the title, ignore that.
 	# The last row may be incomplete (blank values). Ignore these.
 	last_datetime_str = None
-	data_rows = tree.xpath(
-		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
-			blank_val, blank_val, blank_val))
-	if len(data_rows) != 12:
-		# Unexpected data somewhere.
-		logging.warning('The following error has occurred: Expected 12 data_rows, found: {}.'.format(len(data_rows)))
-		save_debug_data(str(page))
+	xpath_predicate = '//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
+			blank_val, blank_val, blank_val)
+	rows = parse_page_table('feed', xpath_predicate, page)
+	if rows is None:
 		return feed.get_response()
-	for row in data_rows:
+	for row in rows:
 		data = {}
 		row_datetime = datetime.strptime(row.xpath('td')[0].xpath('text()')[0], '%m/%d/%Y %H:%M')
 		row_datetime = PT.localize(row_datetime)
