@@ -17,6 +17,10 @@ def request_res_latest_json():
 	# Scrape the latest available measurements from CA DWR CDEC.
 	blank_val = '--'.rjust(10)
 	data = {}
+	# Populate at least what is needed to return if there is an error or exception.
+	data['res_elev'] = 0
+	data['inflow'] = 0
+	data['outflow'] = 0
 	url = 'http://cdec.water.ca.gov/cgi-progs/queryF?ORO'
 	req = request.Request(url=url)
 	try:
@@ -24,18 +28,32 @@ def request_res_latest_json():
 			page = response.read()
 	except (URLError) as e:
 		logging.warning('The following error has occurred: {}'.format(repr(e)))
-		return {'res_elev': 0, 'inflow': 0, 'outflow': 0}
+		return data
 	tree = html.fromstring(page)
 	# There could be multiple tables in the page.
 	# The table with hourly measurements has either 14 or 15 rows and exactly 15 columns.
 	# The first two rows are for the title, ignore that.
 	# The last row may be incomplete (blank values). Ignore these.
-	res_elev_row = tree.xpath(
+	res_elev_rows = tree.xpath(
 		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"]]'.format(
-			blank_val))[-1]
-	flow_row = tree.xpath(
+			blank_val))
+	if len(res_elev_rows) == 12:
+		res_elev_row = res_elev_rows[-1]
+	else:
+		# Unexpected data somewhere.
+		logging.warning('The following error has occurred: Expected 12 res_elev_rows rows, found: {}'.format(len(res_elev_rows)))
+		save_debug_data(str(page))
+		return data
+	flow_rows = tree.xpath(
 		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
-			blank_val, blank_val))[-1]
+			blank_val, blank_val))
+	if len(flow_rows) == 12:
+		flow_row = flow_rows[-1]
+	else:
+		# Unexpected data somewhere.
+		logging.warning('The following error has occurred: Expected 12 flow_rows, found: {}'.format(len(flow_rows)))
+		save_debug_data(str(page))
+		return data
 	res_elev_datetime = '{:%b %-d %-I%P}'.format(
 		datetime.strptime(res_elev_row[0].xpath('text()')[0], '%m/%d/%Y %H:%M'))
 	res_elev = float(res_elev_row[1].xpath('text()')[0])
@@ -56,6 +74,10 @@ def request_gauges_latest_json():
 	# Scrape the latest available measurements from CA DWR CDEC.
 	blank_val = '--'.rjust(10)
 	data = {}
+	# Populate at least what is needed to return if there is an error or exception.
+	data['res_elev'] = 0
+	data['inflow'] = 0
+	data['outflow'] = 0
 	PT = pytz.timezone('America/Los_Angeles')  # Pacific Timezone
 	url = 'http://cdec.water.ca.gov/cgi-progs/queryF?ORO'
 	req = request.Request(url=url)
@@ -66,9 +88,16 @@ def request_gauges_latest_json():
 	# The table with hourly measurements has either 14 or 15 rows and exactly 15 colums.
 	# The first two rows are for the title, ignore that.
 	# The last row may be incomplete (blank values). Ignore these.
-	row = tree.xpath(
+	gauge_rows = tree.xpath(
 		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
-			blank_val, blank_val, blank_val))[-1]
+			blank_val, blank_val, blank_val))
+	if len(gauge_rows) == 13:
+		row = gauge_rows[-1]
+	else:
+		# Unexpected data somewhere.
+		logging.warning('The following error has occurred: Expected 12 gauge_rows, found: {}.'.format(len(gauge_rows)))
+		save_debug_data(str(page))
+		return data
 	row_datetime = datetime.strptime(row[0].xpath('text()')[0], '%m/%d/%Y %H:%M')
 	row_datetime = PT.localize(row_datetime)
 	datetime_str = '{:%B %-d, %Y %-I%P} {}'.format(
@@ -126,6 +155,14 @@ def sync_gauges_json(last_datetime_str):
 			data = json.load(data_file)
 		if last_datetime_str != data['datetime']:
 			os.remove(str(path))
+
+
+def save_debug_data(data):
+	site_root = Path(__file__).parent
+	path = Path(site_root, 'data', 'debug-data-{:%Y%m%d%H%M%S}'.format(datetime.utcnow()))
+	with path.open('w') as debug_file:
+		debug_file.write(data)
+		logging.warning('Wrote debug data file: {}'.format(path))
 
 
 app = Flask(__name__, instance_relative_config=True)
@@ -189,9 +226,15 @@ def feed():
 	# The first two rows are for the title, ignore that.
 	# The last row may be incomplete (blank values). Ignore these.
 	last_datetime_str = None
-	for row in tree.xpath(
+	data_rows = tree.xpath(
 		'//div[@class="content_left_column"]/table[count(tr) >= 14 and count(tr) <= 15]/tr[count(td) = 15][position() > 2][td[2][text()!="{}"] and td[6][text()!="{}"] and td[8][text()!="{}"]]'.format(
-			blank_val, blank_val, blank_val)):
+			blank_val, blank_val, blank_val))
+	if len(data_rows) != 12:
+		# Unexpected data somewhere.
+		logging.warning('The following error has occurred: Expected 12 data_rows, found: {}.'.format(len(data_rows)))
+		save_debug_data(page)
+		return data
+	for row in data_rows:
 		data = {}
 		row_datetime = datetime.strptime(row.xpath('td')[0].xpath('text()')[0], '%m/%d/%Y %H:%M')
 		row_datetime = PT.localize(row_datetime)
