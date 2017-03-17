@@ -8,8 +8,7 @@ venv/
 ENV/
 
 # Ignore as this is instance-specific.  Deployed from scripts/env.local.template.sh
-web_site/data/reslatest.json
-web_site/data/gaugeslatest.json
+web_site/data/
 
 # Gunicorn config file.
 # Ignore as this is instance-specific.  Deployed from deploy/gunicorn-*.conf
