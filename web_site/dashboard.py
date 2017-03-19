@@ -1,7 +1,7 @@
 from pathlib import Path
 from urllib import request
-from urllib.error import URLError
-from lxml import html
+from urllib.error import URLError, HTTPError
+from lxml import html, etree
 from flask import Flask, Response, request as flask_request, jsonify, render_template, send_file, abort
 from werkzeug.contrib.atom import AtomFeed
 from werkzeug.utils import secure_filename
@@ -133,7 +133,7 @@ def sync_gauges_json(last_datetime_str):
 	if path.is_file():
 		with path.open('r') as data_file:
 			data = json.load(data_file)
-		if last_datetime_str != data['datetime']:
+		if last_datetime_str != data.get('datetime'):
 			os.remove(str(path))
 
 
@@ -148,22 +148,34 @@ def save_debug_data(data):
 def request_cdec_hourly_page():
 	url = 'http://cdec.water.ca.gov/cgi-progs/queryF?ORO'
 	req = request.Request(url=url)
-	try:
-		with request.urlopen(req) as response:
-			page = response.read()
-	except (URLError) as e:
-		logging.warning('The following error has occurred: {}'.format(repr(e)))
-		return None
+	attempt = 0
+	page = None
+	while attempt < 3:
+		attempt += 1
+		try:
+			with request.urlopen(req) as response:
+				page = response.read()
+				break
+		except (URLError, HTTPError) as e:
+			logging.warning('The following error has occurred: {}'.format(repr(e)))
+			break
+		except ConnectionResetError as e:
+		   logging.warning('The following error has occurred: {}'.format(repr(e)))
 	return page
 
 
 def parse_page_table(label, xpath_predicate, page):
-	tree = html.fromstring(page)
+	try:
+		tree = html.fromstring(page)
+	except etree.XMLSyntaxError as e:
+		# Bad markup returned.
+		logging.warning('The following error has occurred: {}'.format(repr(e)))
+		return None
 	rows = tree.xpath(xpath_predicate)
 	if len(rows) < 1:
 		# Unexpected data somewhere.
 		logging.warning('The following error has occurred: Expected {} rows, found only: {} rows'.format(
-            label, len(rows)))
+			label, len(rows)))
 		save_debug_data(str(page))
 		return None
 	return rows
@@ -236,8 +248,8 @@ def feed():
 		data = {}
 		row_datetime = datetime.strptime(row.xpath('td')[0].xpath('text()')[0], '%m/%d/%Y %H:%M')
 		row_datetime = PT.localize(row_datetime)
-		data['entryTitle'] = '{:%B %-d, %Y %-I%P} {}'.format(row_datetime, row_datetime.tzname())
-		last_datetime_str = data['entryTitle']
+		last_datetime_str = '{:%B %-d, %Y %-I%P} {}'.format(row_datetime, row_datetime.tzname())
+		data['entryTitle'] = last_datetime_str
 		data['entryText'] = 'Lake Level: {:,.2f} ft, Inflow: {:,d} cfps, Outflow: {:,d} cfps'.format(
 			float(row.xpath('td')[1].xpath('text()')[0]),
 			int(row.xpath('td')[7].xpath('text()')[0]),
