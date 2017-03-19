@@ -107,7 +107,10 @@ def res_latest():
 		if 'timestamp_str' in latest_data:
 			with path.open('w') as data_file:
 				json.dump(latest_data, data_file)
-		data = latest_data
+			data = latest_data
+		elif 'timestamp_str' not in data:
+			# We have neither old or new, so use the zero/default values.
+			data = latest_data
 	return data
 
 
@@ -125,7 +128,10 @@ def gauges_latest():
 		if 'timestamp_str' in latest_data:
 			with path.open('w') as data_file:
 				json.dump(latest_data, data_file)
-		data = latest_data
+			data = latest_data
+		elif 'timestamp_str' not in data:
+			# We have neither old or new data, so use the zero/default values.
+			data = latest_data
 	return data
 
 
