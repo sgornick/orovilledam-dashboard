@@ -103,8 +103,9 @@ def res_latest():
 	# If more than a minute old, get the latest.
 	if 'timestamp_str' not in data or \
 		abs((datetime.utcnow() - datetime.strptime(data['timestamp_str'], '%Y-%m-%d %H:%M:%S.%f')).total_seconds()) >= 60:
-		data = request_res_latest_json()
-		if 'datetime' in data:
+		latest_data = request_res_latest_json()
+		if latest_data is not None and 'timestamp_str' in latest_data:
+			data = latest_data
 			with path.open('w') as data_file:
 				json.dump(data, data_file)
 	return data
@@ -120,8 +121,9 @@ def gauges_latest():
 	# If more than a minute old, get the latest.
 	if 'timestamp_str' not in data or \
 		abs((datetime.utcnow() - datetime.strptime(data['timestamp_str'], '%Y-%m-%d %H:%M:%S.%f')).total_seconds()) >= 60:
-		data = request_gauges_latest_json()
-		if 'datetime' in data:
+		latest_data = request_gauges_latest_json()
+		if latest_data is not None and 'timestamp_str' in latest_data:
+			data = latest_data
 			with path.open('w') as data_file:
 				json.dump(data, data_file)
 	return data
