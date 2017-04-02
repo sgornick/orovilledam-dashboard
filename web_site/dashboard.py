@@ -226,9 +226,19 @@ def latest(filename='latest', file_ext='png'):
 	if file_ext and file_ext.lower() not in output_types:
 	   abort(404)
 	req = request.Request(url=url)
-	with request.urlopen(req) as response:
-		mimetype = response.headers['Content-Type']
-		image_data = io.BytesIO(response.read())
+	attempt = 0
+	while attempt < 3:
+		attempt += 1
+		try:
+			with request.urlopen(req) as response:
+				mimetype = response.headers['Content-Type']
+				image_data = io.BytesIO(response.read())
+				break
+		except (URLError, HTTPError) as e:
+			logging.warning('The following error has occurred: {}'.format(repr(e)))
+			break
+		except ConnectionResetError as e:
+		   logging.warning('The following error has occurred: {}'.format(repr(e)))
 	return send_file(
 		image_data,
 		attachment_filename=secure_filename('{}.{}'.format(filename, file_ext)),
