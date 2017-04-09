@@ -218,6 +218,7 @@ def res_latest_json():
 @app.route('/latest/<filename>.<file_ext>', methods=['GET'])
 @app.route('/latest/<filename>', methods=['GET'])
 def latest(filename='latest', file_ext='png'):
+	max_attempts = 3
 	url = 'https://phantomjscloud.com/api/browser/v2/{}/?request={{url:%22https://orovilledam.org/gauges/%22,renderType:%22png%22,renderSettings:{{viewport:{{width:600,height:350}}}}}}'.format(
 		app.config['PHANTOMJSCLOUD_API_KEY'])
 	output_types = {
@@ -227,7 +228,7 @@ def latest(filename='latest', file_ext='png'):
 	   abort(404)
 	req = request.Request(url=url)
 	attempt = 0
-	while attempt < 3:
+	while attempt < max_attempts:
 		attempt += 1
 		try:
 			with request.urlopen(req) as response:
@@ -236,9 +237,14 @@ def latest(filename='latest', file_ext='png'):
 				break
 		except (URLError, HTTPError) as e:
 			logging.warning('The following error has occurred: {}'.format(repr(e)))
-			break
+			if attempt < max_attempts:
+				break
+			else:
+				raise
 		except ConnectionResetError as e:
 		   logging.warning('The following error has occurred: {}'.format(repr(e)))
+		   if attempt >= max_attempts:
+			   raise
 	return send_file(
 		image_data,
 		attachment_filename=secure_filename('{}.{}'.format(filename, file_ext)),
