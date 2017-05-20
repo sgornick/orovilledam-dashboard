@@ -1,4 +1,5 @@
 .chart-wrapper { min-height: 360px; }
+.chart-wrapper-short { min-height: 120px; }
 
 .chart-stage .knob-title {
   border-bottom: medium none;
