@@ -15,6 +15,7 @@ chmod --silent g+rw ../../web_site/data/*.json
 chmod -R g+r ../../web_site/static
 chmod -R g+r ../../web_site/templates
 chmod -f g+r ../../gunicorn-*.conf || true
+chmod ug+rx ./*
 find ../../ -type f -name "*.sh" ! -path "*/venv/*" -exec chmod u+x {} \;
 find ../../ -type f -name "*.py" ! -path "*/venv/*" -exec chmod g+r {} \;
 (cd ../..; find . -exec stat -c "%a %n" {} \; |sort -k 2)
