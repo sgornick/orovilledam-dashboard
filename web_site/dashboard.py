@@ -209,10 +209,13 @@ def gauges():
 def gauges_latest_json():
 	return jsonify(gauges_latest())
 
+@app.route('/img/gauges.png')
+def gauges_img():
+	return send_file('data/gauges.png')
+
 @app.route('/reslatest/', methods=['GET'])
 def res_latest_json():
 	return jsonify(res_latest())
-
 
 @app.route('/latest/', methods=['GET'])
 @app.route('/latest/<filename>.<file_ext>', methods=['GET'])

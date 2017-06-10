@@ -12,6 +12,7 @@ chmod g+w ../../
 chmod g+w ../../web_site
 chmod g+w ../../web_site/data
 chmod --silent g+rw ../../web_site/data/*.json
+chmod --silent g+rw ../../web_site/data/*.png
 chmod -R g+r ../../web_site/static
 chmod -R g+r ../../web_site/templates
 chmod -f g+r ../../gunicorn-*.conf || true

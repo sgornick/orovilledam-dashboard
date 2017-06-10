@@ -72,4 +72,11 @@ Add/Update orovilledam.org software:
       $ sudo service nginx reload
       $ exit
 
+   Configure Cron
+      $ sudo vi /etc/crontab
+
+      Append the following (which will run the refreshgauges once a minute).
+
+      */1 * * * * www-data /var/www/orovilledam.org/deploy/scripts/refreshgauges.sh
+
 ************************************************************************
