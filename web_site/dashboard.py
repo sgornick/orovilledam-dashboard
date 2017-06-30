@@ -163,7 +163,7 @@ def request_cdec_hourly_page():
 	while attempt < 3:
 		attempt += 1
 		try:
-			with request.urlopen(req) as response:
+			with request.urlopen(req, timeout=10) as response:
 				page = response.read()
 				break
 		except (URLError, HTTPError) as e:
